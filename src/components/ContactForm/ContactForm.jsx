@@ -2,7 +2,9 @@ import { Formik, Field } from 'formik';
 import * as Yup from 'yup';
 import { FormStyle, ErrMessage, Lable, Btn } from './ContactForm.styled';
 import { useDispatch, useSelector } from 'react-redux';
-import { addContact } from 'redax/contactsSlice';
+import toast from 'react-hot-toast';
+import { selectContacts } from 'redax/selectors';
+import { addContact } from 'redax/operations';
 
 const nameRegex =
   "^[a-zA-Zа-щьюяґєіїА-ЩЬЮЯҐЄІЇ]+(([' \\-][a-zA-Zа-щьюяґєіїА-ЩЬЮЯҐЄІЇ ])?[a-zA-Zа-щьюяґєіїА-ЩЬЮЯҐЄІЇ]*)*$";
@@ -14,7 +16,7 @@ const contactSchema = Yup.object().shape({
     .matches(nameRegex, 'Name is not valid')
     .required('Name is required')
     .trim(),
-  number: Yup.string()
+  phone: Yup.string()
     .matches(phoneRegex, 'Phone number is not valid')
     .length(13, 'Phone number is not valid')
     .required('Phone number is required')
@@ -23,17 +25,17 @@ const contactSchema = Yup.object().shape({
 
 export const ContactForm = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector(state => state.contacts.list);
+  const contacts = useSelector(selectContacts);
 
   const isOnList = name => {
     return contacts.find(
-      contact => contact.contact.name.toLowerCase() === name.toLowerCase()
+      contact => contact.name.toLowerCase() === name.toLowerCase()
     );
   };
 
   const onAdd = contact => {
     if (isOnList(contact.name)) {
-      alert(`${contact.name} is already in contacts`);
+      toast.error(`${contact.name} is already in contacts`);
       return;
     }
     dispatch(addContact(contact));
@@ -41,7 +43,7 @@ export const ContactForm = () => {
 
   return (
     <Formik
-      initialValues={{ name: '', number: '' }}
+      initialValues={{ name: '', phone: '' }}
       validationSchema={contactSchema}
       onSubmit={(values, actions) => {
         onAdd(values);
@@ -56,8 +58,8 @@ export const ContactForm = () => {
         </Lable>
         <Lable>
           Number
-          <Field name="number" type="tel" placeholder="+380 11111 1111" />
-          <ErrMessage name="number" component="div" />
+          <Field name="phone" type="tel" placeholder="+380 11111 1111" />
+          <ErrMessage name="phone" component="div" />
         </Lable>
         <Btn type="submit">Add contact</Btn>
       </FormStyle>
